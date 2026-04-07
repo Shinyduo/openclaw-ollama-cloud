@@ -5,6 +5,4 @@ ENV PORT=18789
 
 EXPOSE 18789
 
-VOLUME /home/node/.openclaw
-
 CMD ["node", "dist/index.js"]

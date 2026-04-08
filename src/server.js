@@ -1316,7 +1316,10 @@ app.post("/setup/import", requireSetupAuth, async (req, res) => {
 const proxy = httpProxy.createProxyServer({
   target: GATEWAY_TARGET,
   ws: true,
-  xfwd: true,
+  xfwd: false,
+  headers: {
+    host: `${INTERNAL_GATEWAY_HOST}:${INTERNAL_GATEWAY_PORT}`,
+  },
 });
 
 proxy.on("error", (err, _req, res) => {
@@ -1362,6 +1365,12 @@ function attachGatewayAuthHeader(req) {
   if (!req?.headers?.authorization && OPENCLAW_GATEWAY_TOKEN) {
     req.headers.authorization = `Bearer ${OPENCLAW_GATEWAY_TOKEN}`;
   }
+  // Strip forwarded headers so gateway sees the connection as local (loopback).
+  delete req.headers["x-forwarded-for"];
+  delete req.headers["x-forwarded-host"];
+  delete req.headers["x-forwarded-proto"];
+  delete req.headers["x-real-ip"];
+  req.headers.host = `${INTERNAL_GATEWAY_HOST}:${INTERNAL_GATEWAY_PORT}`;
 }
 
 proxy.on("proxyReqWs", (_proxyReq, req) => {

@@ -748,6 +748,9 @@ app.post("/setup/api/run", requireSetupAuth, async (req, res) => {
     await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.bind", "loopback"]));
     await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.port", String(INTERNAL_GATEWAY_PORT)]));
 
+    // Allow Control UI to work from any origin (required for Railway reverse proxy).
+    await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback", "true"]));
+
     // Railway runs behind a reverse proxy. Trust loopback as a proxy hop so local client detection
     // remains correct when X-Forwarded-* headers are present.
     await runCmd(
@@ -1440,6 +1443,8 @@ const server = app.listen(PORT, "0.0.0.0", async () => {
       await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.auth.mode", "token"]));
       await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.auth.token", OPENCLAW_GATEWAY_TOKEN]));
       await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.remote.token", OPENCLAW_GATEWAY_TOKEN]));
+      await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback", "true"]));
+      await runCmd(OPENCLAW_NODE, clawArgs(["config", "set", "gateway.port", String(INTERNAL_GATEWAY_PORT)]));
       console.log("[wrapper] gateway tokens synced");
     } catch (err) {
       console.warn(`[wrapper] failed to sync gateway tokens: ${String(err)}`);

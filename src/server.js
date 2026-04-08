@@ -1365,12 +1365,15 @@ function attachGatewayAuthHeader(req) {
   if (!req?.headers?.authorization && OPENCLAW_GATEWAY_TOKEN) {
     req.headers.authorization = `Bearer ${OPENCLAW_GATEWAY_TOKEN}`;
   }
-  // Strip forwarded headers so gateway sees the connection as local (loopback).
+  // Strip forwarded headers and rewrite origin/host so gateway sees the connection as local (loopback).
   delete req.headers["x-forwarded-for"];
   delete req.headers["x-forwarded-host"];
   delete req.headers["x-forwarded-proto"];
   delete req.headers["x-real-ip"];
   req.headers.host = `${INTERNAL_GATEWAY_HOST}:${INTERNAL_GATEWAY_PORT}`;
+  if (req.headers.origin) {
+    req.headers.origin = `http://${INTERNAL_GATEWAY_HOST}:${INTERNAL_GATEWAY_PORT}`;
+  }
 }
 
 proxy.on("proxyReqWs", (_proxyReq, req) => {
